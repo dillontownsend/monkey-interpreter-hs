@@ -112,8 +112,6 @@ isPeekedCharEqual = (==) (Just '=') . peekChar
             then Nothing
             else Just $ input !! readPosition
 
--- -- -- -- -- -- -- -- -- -- REPL -- -- -- -- -- -- -- -- -- --
-
 accumulateTokens :: [Token] -> Lexer -> [Token]
 accumulateTokens tokens lexer =
     let (advancedLexer, token) = nextToken lexer
