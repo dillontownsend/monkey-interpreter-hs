@@ -41,7 +41,7 @@ parseStatement :: Parser -> (Parser, Maybe Statement)
 parseStatement parser = case currToken parser of
     LET -> parseLetStatement parser
     RETURN -> parseReturnStatement parser
-    _anyOtherToken -> (parser, Nothing)
+    _anyOtherToken -> parseExpressionStatement parser
 
 parseLetStatement :: Parser -> (Parser, Maybe Statement)
 parseLetStatement parser@(Parser _ _ (IDENT s) _) =
@@ -64,3 +64,24 @@ peekError parser expectedToken =
 
 parseReturnStatement :: Parser -> (Parser, Maybe Statement)
 parseReturnStatement p = (advanceToSemicolon p, Just ReturnStatement)
+
+parseExpressionStatement :: Parser -> (Parser, Maybe Statement)
+parseExpressionStatement parser@(Parser _ curr peek _) =
+    ( if peek == SEMICOLON
+        then nextToken parser
+        else parser
+    , Just $ ExpressionStatement curr $ parseExpression parser
+    )
+
+parseExpression :: Parser -> Expression
+parseExpression = undefined
+
+data Precendence
+    = LOWEST
+    | EQUALS
+    | LESSGREATER
+    | SUM
+    | PRODUCT
+    | PREFIX
+    | CALL
+    deriving (Show, Eq, Ord)
