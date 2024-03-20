@@ -17,18 +17,15 @@ testLetStatement =
         hspec $ do
             describe "parser" $ do
                 it "number of statements" $ do
-                    let (_, Program ss) = P.parseProgram . P.new . L.new $ input
+                    let (Program ss) = P.parseProgram . P.new . L.new $ input
                     length ss `shouldBe` 3
                 it "expected statements" $ do
-                    let (_, Program ss) = P.parseProgram . P.new . L.new $ input
+                    let (Program ss) = P.parseProgram . P.new . L.new $ input
                     map (\(LetStatement i) -> i) ss
                         `shouldBe` [ Identifier "x"
                                    , Identifier "y"
                                    , Identifier "foobar"
                                    ]
-                it "no parser errors" $ do
-                    let ((P.Parser _ _ _ es), _) = P.parseProgram . P.new . L.new $ input
-                    length es `shouldBe` 0
 
 testReturnStatement :: IO ()
 testReturnStatement =
@@ -41,15 +38,32 @@ testReturnStatement =
         hspec $ do
             describe "parser" $ do
                 it "number of statements" $ do
-                    let (_, Program ss) = P.parseProgram . P.new . L.new $ input
+                    let (Program ss) = P.parseProgram . P.new . L.new $ input
                     length ss `shouldBe` 3
                 it "expected statements" $ do
-                    let (_, Program ss) = P.parseProgram . P.new . L.new $ input
+                    let (Program ss) = P.parseProgram . P.new . L.new $ input
                     ss
                         `shouldBe` [ ReturnStatement
                                    , ReturnStatement
                                    , ReturnStatement
                                    ]
-                it "no parser errors" $ do
-                    let ((P.Parser _ _ _ es), _) = P.parseProgram . P.new . L.new $ input
-                    length es `shouldBe` 0
+
+testExpressionStatement :: IO ()
+testExpressionStatement =
+    let
+        input =
+            "foobar;\n\
+            \5;\n\
+            \!foobar;\n\
+            \-10;"
+     in
+        hspec $ do
+            describe "parser" $ do
+                it "expected statements" $ do
+                    let (Program ss) = P.parseProgram . P.new . L.new $ input
+                    ss
+                        `shouldBe` [ ExpressionStatement $ IdentifierExpression $ Identifier "foobar"
+                                   , ExpressionStatement $ IntegerLiteral 5
+                                   , ExpressionStatement $ PrefixExpression PrefixBang $ IdentifierExpression $ Identifier "foobar"
+                                   , ExpressionStatement $ PrefixExpression PrefixMinus $ IntegerLiteral 10
+                                   ]

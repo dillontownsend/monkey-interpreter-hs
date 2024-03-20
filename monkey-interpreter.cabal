@@ -61,7 +61,7 @@ executable monkey-interpreter
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    other-modules: Lexer.Lexer, Lexer.Token, Lexer.Test, Parser.Parser, Parser.AST, Parser.Test
+    other-modules: Lexer.Lexer, Lexer.Token, Lexer.Test, Parser.AST, Parser.Parser, Parser.Test
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

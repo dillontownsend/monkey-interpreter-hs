@@ -112,12 +112,10 @@ isPeekedCharEqual = (==) (Just '=') . peekChar
             then Nothing
             else Just $ input !! readPosition
 
-accumulateTokens :: [Token] -> Lexer -> [Token]
-accumulateTokens tokens lexer =
-    let (advancedLexer, token) = nextToken lexer
-     in if token == EOF
-            then reverse $ token : tokens
-            else accumulateTokens (token : tokens) advancedLexer
-
 lex :: String -> [Token]
 lex = accumulateTokens [] . new
+  where
+    accumulateTokens tokens@(EOF : _) _ = reverse tokens
+    accumulateTokens tokens lexer =
+        let (advancedLexer, token) = nextToken lexer
+         in accumulateTokens (token : tokens) advancedLexer
