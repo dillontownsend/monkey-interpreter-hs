@@ -55,7 +55,15 @@ testExpressionStatement =
             "foobar;\n\
             \5;\n\
             \!foobar;\n\
-            \-10;"
+            \-10;\n\
+            \5 + 5;\n\
+            \5 - 5;\n\
+            \5 * 5;\n\
+            \5 / 5;\n\
+            \5 > 5;\n\
+            \5 < 5;\n\
+            \5 == 5;\n\
+            \5 != 5;"
      in
         hspec $ do
             describe "parser" $ do
@@ -66,4 +74,12 @@ testExpressionStatement =
                                    , ExpressionStatement $ IntegerLiteral 5
                                    , ExpressionStatement $ PrefixExpression PrefixBang $ IdentifierExpression $ Identifier "foobar"
                                    , ExpressionStatement $ PrefixExpression PrefixMinus $ IntegerLiteral 10
+                                   , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixPlus (IntegerLiteral 5)
+                                   , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixMinus (IntegerLiteral 5)
+                                   , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixMultiply (IntegerLiteral 5)
+                                   , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixDivide (IntegerLiteral 5)
+                                   , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixGreaterThan (IntegerLiteral 5)
+                                   , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixLessThan (IntegerLiteral 5)
+                                   , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixEqualTo (IntegerLiteral 5)
+                                   , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixNotEqualTo (IntegerLiteral 5)
                                    ]

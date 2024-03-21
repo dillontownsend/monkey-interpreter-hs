@@ -66,24 +66,37 @@ parseExpressionStatement parser =
      in (advanceToSemicolon advancedParser, Just $ ExpressionStatement expression)
 
 parseExpression :: Parser -> Precedence -> (Parser, Expression)
-parseExpression parser precedence = case currToken parser of
-    IDENT _ -> (parser, parseIdentifier parser)
-    INT _ -> (parser, parseIntegerLiteral parser)
-    BANG -> parsePrefixExpression parser
-    MINUS -> parsePrefixExpression parser
-    _anyOtherToken -> error $ "cannot parse expression from currToken: " ++ (show _anyOtherToken)
-
-getInfixParseFn :: Token -> (Parser -> Expression -> (Parser, Expression))
-getInfixParseFn token = case token of
-    PLUS -> parseInfixExpression
-    MINUS -> parseInfixExpression
-    SLASH -> parseInfixExpression
-    ASTERISK -> parseInfixExpression
-    EQUAL_TO -> parseInfixExpression
-    NOT_EQUAL_TO -> parseInfixExpression
-    LESS_THAN -> parseInfixExpression
-    GREATER_THAN -> parseInfixExpression
-    _anyOtherToken -> error $ "no parseInfixFn for token: " ++ show token
+parseExpression parser precendence =
+    let (advancedParser, leftExpression) = parsePrefix parser
+     in parseInfix advancedParser leftExpression precendence
+  where
+    parseInfix p@(Parser _ _ SEMICOLON _) e _ = (p, e)
+    parseInfix p e prec =
+        if prec >= peekPrecedence p
+            then (p, e)
+            else
+                let infixParseFn = getInfixParseFn $ peekToken p
+                 in case infixParseFn of
+                        Just f ->
+                            let (p', e') = f (nextToken p) e
+                             in parseInfix p' e' prec
+                        Nothing -> (p, e)
+    parsePrefix p = case currToken p of
+        IDENT _ -> (p, parseIdentifier p)
+        INT _ -> (p, parseIntegerLiteral p)
+        BANG -> parsePrefixExpression p
+        MINUS -> parsePrefixExpression p
+        _anyOtherToken -> error $ "cannot parse expression from currToken: " ++ (show _anyOtherToken)
+    getInfixParseFn token = case token of
+        PLUS -> Just parseInfixExpression
+        MINUS -> Just parseInfixExpression
+        SLASH -> Just parseInfixExpression
+        ASTERISK -> Just parseInfixExpression
+        EQUAL_TO -> Just parseInfixExpression
+        NOT_EQUAL_TO -> Just parseInfixExpression
+        LESS_THAN -> Just parseInfixExpression
+        GREATER_THAN -> Just parseInfixExpression
+        _anyOtherToken -> Nothing
 
 parseInfixExpression :: Parser -> Expression -> (Parser, Expression)
 parseInfixExpression parser left =
