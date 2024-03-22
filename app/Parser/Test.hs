@@ -83,3 +83,16 @@ testExpressionStatement =
                                    , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixEqualTo (IntegerLiteral 5)
                                    , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixNotEqualTo (IntegerLiteral 5)
                                    ]
+
+testOperatorPrecedenceParsing :: IO ()
+testOperatorPrecedenceParsing =
+    let
+        input = "1 + 2 + 3;"
+     in
+        hspec $ do
+            describe "parser" $ do
+                it "operator precedence" $ do
+                    let (Program ss) = P.parseProgram . P.new . L.new $ input
+                    ss
+                        `shouldBe` [ ExpressionStatement $ InfixExpression (InfixExpression (IntegerLiteral 1) InfixPlus (IntegerLiteral 2)) InfixPlus (IntegerLiteral 3)
+                                   ]

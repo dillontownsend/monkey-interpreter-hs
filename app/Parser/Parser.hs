@@ -70,17 +70,16 @@ parseExpression parser precendence =
     let (advancedParser, leftExpression) = parsePrefix parser
      in parseInfix advancedParser leftExpression precendence
   where
-    parseInfix p@(Parser _ _ SEMICOLON _) e _ = (p, e)
     parseInfix p e prec =
-        if prec >= peekPrecedence p
-            then (p, e)
-            else
+        if peekToken p /= SEMICOLON && prec < peekPrecedence p
+            then
                 let infixParseFn = getInfixParseFn $ peekToken p
                  in case infixParseFn of
                         Just f ->
                             let (p', e') = f (nextToken p) e
                              in parseInfix p' e' prec
                         Nothing -> (p, e)
+            else (p, e)
     parsePrefix p = case currToken p of
         IDENT _ -> (p, parseIdentifier p)
         INT _ -> (p, parseIntegerLiteral p)
