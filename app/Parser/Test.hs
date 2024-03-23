@@ -63,7 +63,8 @@ testExpressionStatement =
             \5 > 5;\n\
             \5 < 5;\n\
             \5 == 5;\n\
-            \5 != 5;"
+            \5 != 5;\n\
+            \!false;"
      in
         hspec $ do
             describe "parser" $ do
@@ -82,12 +83,16 @@ testExpressionStatement =
                                    , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixLessThan (IntegerLiteral 5)
                                    , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixEqualTo (IntegerLiteral 5)
                                    , ExpressionStatement $ InfixExpression (IntegerLiteral 5) InfixNotEqualTo (IntegerLiteral 5)
+                                   , ExpressionStatement $ PrefixExpression PrefixBang $ BoolLiteral False
                                    ]
 
 testOperatorPrecedenceParsing :: IO ()
 testOperatorPrecedenceParsing =
     let
-        input = "1 + 2 + 3;"
+        input =
+            "1 + 2 + 3;\n\
+            \-1 + 2;\n\
+            \(1 + 2) * 3;"
      in
         hspec $ do
             describe "parser" $ do
@@ -95,4 +100,6 @@ testOperatorPrecedenceParsing =
                     let (Program ss) = P.parseProgram . P.new . L.new $ input
                     ss
                         `shouldBe` [ ExpressionStatement $ InfixExpression (InfixExpression (IntegerLiteral 1) InfixPlus (IntegerLiteral 2)) InfixPlus (IntegerLiteral 3)
+                                   , ExpressionStatement $ InfixExpression (PrefixExpression PrefixMinus (IntegerLiteral 1)) InfixPlus (IntegerLiteral 2)
+                                   , ExpressionStatement $ InfixExpression (InfixExpression (IntegerLiteral 1) InfixPlus (IntegerLiteral 2)) InfixMultiply (IntegerLiteral 3)
                                    ]

@@ -19,6 +19,7 @@ data Expression
     | IntegerLiteral !Int
     | PrefixExpression !PrefixOperator !Expression
     | InfixExpression !Expression !InfixOperator !Expression
+    | BoolLiteral !Bool
     deriving (Eq, Show)
 
 newtype ParserError

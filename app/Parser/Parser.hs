@@ -83,8 +83,10 @@ parseExpression parser precendence =
     parsePrefix p = case currToken p of
         IDENT _ -> (p, parseIdentifier p)
         INT _ -> (p, parseIntegerLiteral p)
+        BOOL _ -> (p, parseBoolean p)
         BANG -> parsePrefixExpression p
         MINUS -> parsePrefixExpression p
+        LPAREN -> parseGroupedExpression p
         _anyOtherToken -> error $ "cannot parse expression from currToken: " ++ (show _anyOtherToken)
     getInfixParseFn token = case token of
         PLUS -> Just parseInfixExpression
@@ -125,6 +127,15 @@ parseIdentifier _ = error "currToken is not an IDENT"
 parseIntegerLiteral :: Parser -> Expression
 parseIntegerLiteral (Parser _ (INT i) _ _) = IntegerLiteral i
 parseIntegerLiteral _ = error "currToken is not an INT"
+
+parseBoolean :: Parser -> Expression
+parseBoolean (Parser _ (BOOL b) _ _) = BoolLiteral b
+parseBoolean _ = error "currToken is not a BOOL"
+
+parseGroupedExpression :: Parser -> (Parser, Expression)
+parseGroupedExpression parser =
+    let (advancedParser, expression) = parseExpression (nextToken parser) LOWEST
+     in (nextToken advancedParser, expression)
 
 parsePrefixExpression :: Parser -> (Parser, Expression)
 parsePrefixExpression parser =
