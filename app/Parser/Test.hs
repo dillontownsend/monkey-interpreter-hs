@@ -121,3 +121,20 @@ testIfExpression =
                                             , alternative = Just $ Block $ [ExpressionStatement $ IdentifierExpression $ Identifier "y"]
                                             }
                                    ]
+
+testFunctionLiteralParsing :: IO ()
+testFunctionLiteralParsing =
+    let
+        input = "fn(x, y) { x + y; }"
+     in
+        hspec $ do
+            describe "parser" $ do
+                it "function literal" $ do
+                    let (Program ss) = P.parseProgram . P.new . L.new $ input
+                    ss
+                        `shouldBe` [ ExpressionStatement $
+                                        FunctionLiteral [Identifier "x", Identifier "y"] $
+                                            Block
+                                                [ ExpressionStatement $ InfixExpression (IdentifierExpression $ Identifier "x") InfixPlus (IdentifierExpression $ Identifier "y")
+                                                ]
+                                   ]

@@ -92,6 +92,7 @@ parseExpression parser precendence =
         MINUS -> parsePrefixExpression p
         LPAREN -> parseGroupedExpression p
         IF -> parseIfExpression p
+        FUNCTION -> parseFunctionLiteral p
         _anyOtherToken -> error $ "cannot parse expression from currToken: " ++ (show _anyOtherToken)
     getInfixParseFn token = case token of
         PLUS -> Just parseInfixExpression
@@ -103,6 +104,27 @@ parseExpression parser precendence =
         LESS_THAN -> Just parseInfixExpression
         GREATER_THAN -> Just parseInfixExpression
         _anyOtherToken -> Nothing
+
+parseFunctionLiteral :: Parser -> (Parser, Expression)
+parseFunctionLiteral parser =
+    let (advancedParser, parameters) = parseFunctionParameters $ nextToken parser
+        (advancedParser', block) = parseBlockStatement $ nextToken advancedParser
+     in (advancedParser', FunctionLiteral parameters block)
+
+parseFunctionParameters :: Parser -> (Parser, [Identifier])
+parseFunctionParameters parser@(Parser _ _ RPAREN _) = (nextToken parser, [])
+parseFunctionParameters parser =
+    let advancedParser =
+            ( if currToken parser == LPAREN
+                then nextToken
+                else nextToken . nextToken
+            )
+                parser
+     in case currToken advancedParser of
+            IDENT i ->
+                let (advancedParser', parameters) = parseFunctionParameters advancedParser
+                 in (advancedParser', Identifier i : parameters)
+            _anyOtherToken -> error "expected an IDENT"
 
 parseInfixExpression :: Parser -> Expression -> (Parser, Expression)
 parseInfixExpression parser left =

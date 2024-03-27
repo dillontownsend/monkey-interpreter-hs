@@ -26,6 +26,7 @@ data Expression
         , consequence :: !Block
         , alternative :: !(Maybe Block)
         }
+    | FunctionLiteral ![Identifier] !Block
     deriving (Eq, Show)
 
 data Block
