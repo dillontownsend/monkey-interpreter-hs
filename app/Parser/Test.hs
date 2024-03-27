@@ -107,7 +107,7 @@ testOperatorPrecedenceParsing =
 testIfExpression :: IO ()
 testIfExpression =
     let
-        input = "if (x < y) { x } else { y }" -- TODO - ELSE not parsing
+        input = "if (x < y) { x } else { y }"
      in
         hspec $ do
             describe "parser" $ do
@@ -125,7 +125,9 @@ testIfExpression =
 testFunctionLiteralParsing :: IO ()
 testFunctionLiteralParsing =
     let
-        input = "fn(x, y) { x + y; }"
+        input =
+            "fn(x, y) { x + y; }\n\
+            \fn() { 0; }"
      in
         hspec $ do
             describe "parser" $ do
@@ -136,5 +138,10 @@ testFunctionLiteralParsing =
                                         FunctionLiteral [Identifier "x", Identifier "y"] $
                                             Block
                                                 [ ExpressionStatement $ InfixExpression (IdentifierExpression $ Identifier "x") InfixPlus (IdentifierExpression $ Identifier "y")
+                                                ]
+                                   , ExpressionStatement $
+                                        FunctionLiteral [] $
+                                            Block
+                                                [ ExpressionStatement $ IntegerLiteral 0
                                                 ]
                                    ]

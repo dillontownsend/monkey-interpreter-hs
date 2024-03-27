@@ -172,7 +172,7 @@ parseIfExpression parser =
         (advancedParser', consequenceBlock) = parseBlockStatement $ nextToken $ nextToken advancedParser
         (advancedParser'', alternativeBlock) =
             if peekToken advancedParser' == ELSE
-                then fmap Just $ parseBlockStatement $ nextToken $ nextToken advancedParser' -- TODO - hit dis
+                then fmap Just $ parseBlockStatement $ nextToken $ nextToken advancedParser'
                 else (advancedParser', Nothing)
      in (advancedParser'', IfExpression conditionExpression consequenceBlock alternativeBlock)
 
