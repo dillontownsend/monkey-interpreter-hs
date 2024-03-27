@@ -63,7 +63,11 @@ parseStatement p = case currToken p of
 parseExpressionStatement :: Parser -> (Parser, Maybe Statement)
 parseExpressionStatement parser =
     let (advancedParser, expression) = parseExpression parser LOWEST
-     in (advanceToSemicolon advancedParser, Just $ ExpressionStatement expression)
+     in ( if peekToken advancedParser == SEMICOLON
+            then nextToken advancedParser
+            else advancedParser
+        , Just $ ExpressionStatement expression
+        )
 
 parseExpression :: Parser -> Precedence -> (Parser, Expression)
 parseExpression parser precendence =
@@ -87,6 +91,7 @@ parseExpression parser precendence =
         BANG -> parsePrefixExpression p
         MINUS -> parsePrefixExpression p
         LPAREN -> parseGroupedExpression p
+        IF -> parseIfExpression p
         _anyOtherToken -> error $ "cannot parse expression from currToken: " ++ (show _anyOtherToken)
     getInfixParseFn token = case token of
         PLUS -> Just parseInfixExpression
@@ -135,7 +140,34 @@ parseBoolean _ = error "currToken is not a BOOL"
 parseGroupedExpression :: Parser -> (Parser, Expression)
 parseGroupedExpression parser =
     let (advancedParser, expression) = parseExpression (nextToken parser) LOWEST
-     in (nextToken advancedParser, expression)
+     in if peekToken advancedParser == RPAREN
+            then (nextToken advancedParser, expression)
+            else error "expected RPAREN"
+
+parseIfExpression :: Parser -> (Parser, Expression)
+parseIfExpression parser =
+    let (advancedParser, conditionExpression) = parseExpression (nextToken $ nextToken parser) LOWEST
+        (advancedParser', consequenceBlock) = parseBlockStatement $ nextToken $ nextToken advancedParser
+        (advancedParser'', alternativeBlock) =
+            if peekToken advancedParser' == ELSE
+                then fmap Just $ parseBlockStatement $ nextToken $ nextToken advancedParser' -- TODO - hit dis
+                else (advancedParser', Nothing)
+     in (advancedParser'', IfExpression conditionExpression consequenceBlock alternativeBlock)
+
+parseBlockStatement :: Parser -> (Parser, Block)
+parseBlockStatement = fmap Block . accumulateStatements . nextToken
+  where
+    accumulateStatements :: Parser -> (Parser, [Statement])
+    accumulateStatements p =
+        let ct = currToken p
+         in if ct /= RBRACE && ct /= EOF
+                then
+                    let (p', statement) = parseStatement p
+                        recurse = accumulateStatements (nextToken p')
+                     in case statement of
+                            Just s -> (:) s <$> recurse
+                            Nothing -> recurse
+                else (p, [])
 
 parsePrefixExpression :: Parser -> (Parser, Expression)
 parsePrefixExpression parser =

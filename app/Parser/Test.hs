@@ -103,3 +103,21 @@ testOperatorPrecedenceParsing =
                                    , ExpressionStatement $ InfixExpression (PrefixExpression PrefixMinus (IntegerLiteral 1)) InfixPlus (IntegerLiteral 2)
                                    , ExpressionStatement $ InfixExpression (InfixExpression (IntegerLiteral 1) InfixPlus (IntegerLiteral 2)) InfixMultiply (IntegerLiteral 3)
                                    ]
+
+testIfExpression :: IO ()
+testIfExpression =
+    let
+        input = "if (x < y) { x } else { y }" -- TODO - ELSE not parsing
+     in
+        hspec $ do
+            describe "parser" $ do
+                it "if expression" $ do
+                    let (Program ss) = P.parseProgram . P.new . L.new $ input
+                    ss
+                        `shouldBe` [ ExpressionStatement $
+                                        IfExpression
+                                            { condition = InfixExpression (IdentifierExpression (Identifier "x")) InfixLessThan (IdentifierExpression (Identifier "y"))
+                                            , consequence = Block $ [ExpressionStatement $ IdentifierExpression $ Identifier "x"]
+                                            , alternative = Just $ Block $ [ExpressionStatement $ IdentifierExpression $ Identifier "y"]
+                                            }
+                                   ]

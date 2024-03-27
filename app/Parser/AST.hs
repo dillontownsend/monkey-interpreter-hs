@@ -8,6 +8,7 @@ data Statement
     = LetStatement !Identifier -- !Expression
     | ReturnStatement -- Expression
     | ExpressionStatement !Expression
+    | BlockStatement !Block
     deriving (Eq, Show)
 
 newtype Identifier
@@ -20,6 +21,15 @@ data Expression
     | PrefixExpression !PrefixOperator !Expression
     | InfixExpression !Expression !InfixOperator !Expression
     | BoolLiteral !Bool
+    | IfExpression
+        { condition :: !Expression
+        , consequence :: !Block
+        , alternative :: !(Maybe Block)
+        }
+    deriving (Eq, Show)
+
+data Block
+    = Block [Statement]
     deriving (Eq, Show)
 
 newtype ParserError
